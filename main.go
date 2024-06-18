@@ -14,6 +14,7 @@ import (
 )
 
 const url = "https://raw.githubusercontent.com/hashimthearab/go-remote-download/master/assets/gophertunnel.exe"
+const darwinUrl = "https://raw.githubusercontent.com/hashimthearab/go-remote-download/master/assets/gophertunnel_darwin"
 
 // target is the path to install the file to.
 const target = "gophertunnel.exe"
@@ -59,7 +60,7 @@ func readSingleChar() (byte, error) {
 func downloadFile() {
 	fmt.Printf("Downloading %s...\n", target)
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(getUrl())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -119,4 +120,12 @@ func runFile() {
 	}
 
 	fmt.Println("File execution completed.")
+}
+
+func getUrl() string {
+	if runtime.GOOS == "darwin" {
+		fmt.Println("Ye")
+		return darwinUrl
+	}
+	return url
 }
