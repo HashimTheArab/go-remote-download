@@ -5,16 +5,18 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"golang.org/x/term"
 )
 
-const url = "https://raw.githubusercontent.com/hashimthearab/go-remote-download/master/assets/gophertunnel.exe"
+const windowsUrl = "https://raw.githubusercontent.com/hashimthearab/go-remote-download/master/assets/gophertunnel.exe"
 const darwinUrl = "https://raw.githubusercontent.com/hashimthearab/go-remote-download/master/assets/gophertunnel_darwin"
 
 // target is the path to install the file to. Leave it blank to use the current directory and file name.
@@ -24,7 +26,12 @@ func main() {
 	fmt.Println("Golang Remote Downloader")
 
 	if target == "" {
-		target = filepath.Base(getUrl())
+		parsedUrl, err := url.Parse(getUrl())
+		if err != nil {
+			log.Fatal(err)
+		}
+		parsedUrl.RawQuery = ""
+		target = filepath.Base(parsedUrl.Path)
 	}
 
 	for {
@@ -129,8 +136,15 @@ func runFile() {
 }
 
 func getUrl() string {
+	var target = windowsUrl
 	if runtime.GOOS == "darwin" {
-		return darwinUrl
+		target = darwinUrl
 	}
-	return url
+
+	if strings.Contains(target, "raw.githubusercontent.com") {
+		// Bypass github cache
+		target += "?cb=" + fmt.Sprintf("%d", time.Now().Unix())
+	}
+
+	return target
 }
