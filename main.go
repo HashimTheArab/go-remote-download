@@ -21,7 +21,7 @@ const target = "gophertunnel.exe"
 func main() {
 	fmt.Println("Golang Remote Downloader")
 	for {
-		fmt.Printf("Actions:\n  [d] Download %s\n  [r] Run %s\n  [u] Update\nRun: ", target, target)
+		fmt.Printf("[d] Download %s\n[r] Run %s\n[e] Exit\nExecute: ", target, target)
 		char, err := readSingleChar()
 		if err != nil {
 			log.Fatal(err)
@@ -33,6 +33,8 @@ func main() {
 			downloadFile()
 		case "r":
 			runFile()
+		case "e":
+			return
 		default:
 			fmt.Println("Invalid input, try again.")
 		}
