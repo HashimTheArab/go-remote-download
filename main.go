@@ -7,18 +7,21 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"golang.org/x/term"
 )
 
-const url = ""
-const name = "gophertunnel.exe"
+const url = "https://raw.githubusercontent.com/hashimthearab/go-remote-download/master/assets/gophertunnel.exe"
+
+// target is the path to install the file to.
+const target = "gophertunnel.exe"
 
 func main() {
 	fmt.Println("Golang Remote Downloader")
 	for {
-		fmt.Print("Enter 'd' to download the latest version or 'r' to run it: ")
+		fmt.Printf("Actions:\n  [d] Download %s\n  [r] Run %s\n  [u] Update\nRun: ", target, target)
 		char, err := readSingleChar()
 		if err != nil {
 			log.Fatal(err)
@@ -52,7 +55,7 @@ func readSingleChar() (byte, error) {
 }
 
 func downloadFile() {
-	fmt.Printf("Downloading %s...\n", name)
+	fmt.Printf("Downloading %s...\n", target)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -60,7 +63,7 @@ func downloadFile() {
 	}
 	defer resp.Body.Close()
 
-	file, err := os.Create(name)
+	file, err := os.Create(target)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,13 +74,35 @@ func downloadFile() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Downloaded %s successfully.\n", name)
+	fmt.Printf("Downloaded %s successfully.\n", target)
 }
 
 func runFile() {
-	fmt.Printf("Running %s...\n", name)
+	fmt.Printf("Running %s...\n", target)
 
-	cmd := exec.Command("cmd", "/C", "start", name)
+	if _, err := os.Stat(target); os.IsNotExist(err) {
+		fmt.Printf("%s does not exist, download it first.\n", target)
+		return
+	}
+
+	var cmd *exec.Cmd
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		err := os.Chmod(target, 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("cmd", "/C", "start", target)
+	case "darwin":
+		cmd = exec.Command("open", target)
+	case "linux":
+		cmd = exec.Command("xdg-open", target)
+	default:
+		fmt.Println("Unsupported OS.")
+		return
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
